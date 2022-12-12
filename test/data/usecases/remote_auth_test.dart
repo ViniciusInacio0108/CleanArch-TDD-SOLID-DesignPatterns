@@ -3,24 +3,47 @@ import 'package:mockito/mockito.dart';
 import 'package:test/scaffolding.dart';
 
 class RemoteAuth {
-  Future<void> auth() async {}
+  final HttClient httpClient;
+  final String url;
+
+  RemoteAuth({
+    required this.httpClient,
+    required this.url,
+  });
+
+  Future<void> auth() async {
+    await httpClient.request(
+      url: url,
+      method: "post",
+    );
+  }
 }
 
 void main() {
-  test("Should call HttpClient with correct URL", () async {
+  final httpClient = HttClientSpy();
+  String? url;
+  RemoteAuth? sut;
+  setUp(() {
     // arrange
-    final httpClient = HttClientSpy();
-    final url = faker.internet.httpUrl();
-    final sut = RemoteAuth();
+    url = faker.internet.httpUrl();
+    sut = RemoteAuth(httpClient: httpClient, url: url ?? "");
+  });
+  test("Should call HttpClient with correct method", () async {
     // act
-    await sut.auth();
+    await sut!.auth();
     // assert
-    verify(httpClient.request(url: url));
+    verify(httpClient.request(
+      url: url ?? "",
+      method: "post",
+    ));
   });
 }
 
 abstract class HttClient {
-  Future<void> request({required String url}) async {}
+  Future<void>? request({
+    required String url,
+    required String method,
+  }) async {}
 }
 
 class HttClientSpy extends Mock implements HttClient {}
